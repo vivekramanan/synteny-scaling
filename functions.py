@@ -1,6 +1,14 @@
 """
 Analysis of other functional cohorts: same style as postAnalysis.py just simplified
-Files:
+
+Files (all CSVs):
+1. 16s Mash File
+2. core gene cross counter
+3. antibiotic resistance cross counter
+4. mobile genetic elements cross counter
+5. metabolism cross counter
+6. virulence factor cross counter
+
 """
 
 import pandas as pd
@@ -23,6 +31,13 @@ import comparisons as comparisons
 import networks as networks
 
 def funcAdj(spec, df):
+    """
+    Filters the dataframe for the species names of choice and organizes
+    into a 2D numpy array 
+    @param spec: list of species names (with underscores)
+    @param df: dataframe pandas
+    @return the 2d numpy array 
+    """
     z = np.zeros((len(spec), len(spec)))
 
     for i in range(len(df.index)):
@@ -35,6 +50,17 @@ def funcAdj(spec, df):
     return z
 
 def functionKNN(f, G1, taxColor, taxD, spec, title):
+    """
+    Runs all the KNN graphs and comparisons for the various functional cohorts
+    Compares against the original 16S data 
+    @param f: functional dataframe of choice
+    @param G1: 16S graph 
+    @param taxColor: coloring the taxa per phylum
+    @param taxD: phylum taxonomy dictionary
+    @param spec: list of species
+    @param title: functional cohort name
+    @return 16s+functional cohort synteny scaled data (2d matrix)
+    """
     G2 = nx.from_numpy_array(f)
     G2.remove_nodes_from(list(nx.isolates(G2)))
     k2 = nx.spring_layout(G2)
@@ -57,6 +83,16 @@ def functionKNN(f, G1, taxColor, taxD, spec, title):
     return f_scaled
 
 def networks(spec, z, arg, mge, met, vir):
+    """
+    Runs all the KNN graph functions
+    @param spec: list of species
+    @param z: 16S 2d array 
+    @param arg: antibiotic resistance df
+    @param mge: mobile genetic elements df
+    @param met: metabolism df
+    @param vir: virulence df
+    @return each of the synteny scaled 16S data per cohort
+    """
     tax = pd.read_csv("../Data/species-class.csv")
     taxD = {}
     taxC = {}
@@ -87,6 +123,12 @@ def networks(spec, z, arg, mge, met, vir):
     return arg_scaled,mge_scaled,met_scaled,vir_scaled
 
 def hc(z,arg_scaled,mge_scaled,met_scaled,vir_scaled):
+    """
+    Runs hierarchical clustering for each of the scaled synteny data
+    @param z: 16S data original
+    @param <function>_scaled: scaled functional 2d matrix
+    @return returns c_<function>: clusters for each cohort per HC 
+    """
     # 16S
     clust_16 = comparisons.hc(z, spec, "16s_original.nwk")
     # ARG
@@ -161,7 +203,14 @@ def hc(z,arg_scaled,mge_scaled,met_scaled,vir_scaled):
     return c_arg,c_mge,c_met,c_vir
 
 def plots(arg_scaled,mge_scaled,met_scaled,vir_scaled,c_arg,c_mge,c_met,c_vir):
-
+    """
+    Plot creation for all the scaled data + clusters
+        1. PCA for each 
+        2. Comparisons for KNN 
+        3. Comparisons for HC
+    @param <function>_scaled: scaled synteny 2d matrix 
+    @param c_<function>: clusters per function
+    """
     phylakey = {0: "bacillota/actino", 
             1: "bacteroidota", 
             2: "pseudomonadota", 
@@ -291,6 +340,10 @@ def plots(arg_scaled,mge_scaled,met_scaled,vir_scaled,c_arg,c_mge,c_met,c_vir):
     plt.show()
 
 def boxplot(argdf, virdf, mgedf, metdf, coreDF):
+    """
+    Boxplot for the synteny data per cohort distribution
+    @param <function>df: dataframe for each 
+    """
     # BOX PLOT
     order = {'ARG':argdf, 'VIR': virdf, 'MGE': mgedf, 'MET': metdf, 'COR':coreDF}
     vals = []
@@ -348,6 +401,6 @@ def main():
 
     # PLOTS
     plots(arg_scaled,mge_scaled,met_scaled,vir_scaled,c_arg,c_mge,c_met,c_vir)
-    boxplot(argdf, virdf, mgedf, metdf, coreDF)
+    boxplot(argdf, virdf, mgedf, metdf, coredf)
 
 main()

@@ -34,6 +34,17 @@ import comparisons as comparisons
 import networks as networks
 
 def readingInData():
+    """
+    Reading in all the data (16s, Whole genome, core, taxonomy)
+    Need to update the files accordingly 
+    @return z,w,c_rev,taxD,taxC,spec
+        z: 16s data
+        w: whole genome data
+        c_rev: distance version of core genome synteny similarity
+        taxD: taxonomy dictionary for phylum
+        taxC: taxonomy dictionary for class
+        spec: list of species
+    """
     sixteenSMashFile = ""
     wholeGenomeMashFile = ""
     coreFile = ""
@@ -91,16 +102,15 @@ def readingInData():
     
     return z,w,c_rev,taxD,taxC,spec
 
-def scale(old, syn, length):
-    scaled = np.zeros((length, length))
-    for i in range(len(old)):
-        for j in range(len(old)):
-            if syn[i][j] != 0.0:
-                scaled[i][j] = old[i][j] * syn[i][j]
-    #scale = MinMaxScaler().fit_transform(scaled)
-    return scaled
-
 def hcAnalysis(clust_16, clust_16syn, clust_wg, z_scaled, wg_scaled, z, spec, taxD):
+    """
+    Hierarchical clustering analysis for the 3: 16s, 16s synteny, and 16s whole genome
+        Runs PCA and tSNE as well
+    @param clust_<type>: list of clusters (length spec)
+    @param <type>_scaled: 2d matrix of the synteny scaled 16s data (including z)
+    @param spec: list of species
+    @param taxD: taxonomy dictionary of phylum (key: spec, val: phylum)
+    """
     c1 = [i[0] for i in clust_16]
     c2 = [i[0] for i in clust_16syn]
     c_wg = [i[0] for i in clust_wg]
@@ -150,6 +160,12 @@ def hcAnalysis(clust_16, clust_16syn, clust_wg, z_scaled, wg_scaled, z, spec, ta
     return
     
 def PCAandTSNE(z, z_syn, z_wg, c1, c3, c4, phylaColors, phylakey):
+    """
+    Runs PCA and tSNE accordingly 
+    @param z/z_syn/z_wg: 2d np array for each set
+    @param c1, c3, c4: clusters (c3 and c4 are manually matched to c1)
+    @param phylaColors / phylakey: dictionary for the phyla data
+    """
     # PCA and label clusters 
     f,axes = plt.subplots(1,2, figsize=(20,10))
     plt.rcParams.update({'font.size': 20})
@@ -220,6 +236,13 @@ def PCAandTSNE(z, z_syn, z_wg, c1, c3, c4, phylaColors, phylakey):
     plt.show()
 
 def KNNgraphs(z, z_scaled, wg_scaled, taxC, taxD, spec):
+    """
+    KNN graphs for the cohorts
+        Runs hierarchical clustering and girvan newman clustering comparison
+    @param z/z_scaled/wg_scaled: 2d np array for each set
+    @param taxC/taxD: dictionary for taxonomy (C: class, D: phylum)
+    @param spec: list of species
+    """
 
     prism = px.colors.qualitative.Prism
     taxColor = {}
@@ -278,6 +301,11 @@ def KNNgraphs(z, z_scaled, wg_scaled, taxC, taxD, spec):
     HCGNComparison(bestGN, z_scaled)
 
 def HCGNComparison(bestGN, z_scaled):
+    """
+    HC vs GN comparison
+    @param bestGN: best girvan newman partitioning
+    @param z_scaled: 16s synteny scaled data
+    """
     Z = linkage(z_scaled, 'complete')
     clusters = cut_tree(Z, n_clusters=15)
 
@@ -293,6 +321,13 @@ def HCGNComparison(bestGN, z_scaled):
     plt.savefig("../Figures/HCGNComparison.png", dpi=700, bbox_inches="tight")
 
 def dcNodeEdgeAttr(G, G1, spec, taxC):
+    """
+    DeltaCon based node and edge attribution 
+    @param G: 16s + synteny 
+    @param G1: 16s alone
+    @param spec: list of species
+    @param taxC: taxonomy dict for class
+    """
     # DeltaCon: Node and Edge Attr
     nodeAttrIndex, impact, sorted_E = comparisons.nodeattr(G, G1)
     for i in range(len(nodeAttrIndex)):
@@ -337,6 +372,10 @@ def dcNodeEdgeAttr(G, G1, spec, taxC):
     plt.show()
 
 def edgeIntoDict(G_edges):
+    """
+    Turns list of edges into a dictionary with value = weight
+    @param G_edges: list of edges
+    """
     d = {}
     edges = list(G_edges(data=True))
     for i in edges:
@@ -344,6 +383,11 @@ def edgeIntoDict(G_edges):
     return d
 
 def girvannewmanClust(G):
+    """
+    Girvan newman community clustering (not written by me, taken from internet)
+    @param G: 16s + synteny data
+    @return partitions: list of all clusterings (best is printed)
+    """
     # girvan newman dendrogram 
     nn = nx.number_of_nodes(G)
     ne = nx.number_of_edges(G)
@@ -384,9 +428,11 @@ def girvannewmanClust(G):
     return partitions
 
 def main():
+
+    ## READING IN DATA
     z,w,c_rev,taxD,taxC,spec = readingInData()
 
-    ## HIERARCHICAL CLUSTERING
+    ## SCALING DATA
 
     # 16S original 
     clust_16 = comparisons.hc(z, spec, "16s_original.nwk")
@@ -397,10 +443,10 @@ def main():
     wg_scaled = wg_scaled = MinMaxScaler().fit_transform(np.dot(z, np.cov(w)))
     clust_wg = comparisons.hc(MinMaxScaler().fit_transform(np.dot(z, np.cov(w))), spec, "DOT_wgsyn.nwk")
 
-    # HC Analysis
+    ## HC Analysis
     hcAnalysis(clust_16, clust_16syn, clust_wg, z_scaled, wg_scaled, z, spec, taxD)
 
-    # KNN Graphs
+    ## KNN Graphs
     KNNgraphs(z, z_scaled, wg_scaled, taxC, taxD, spec)
     
 main()
