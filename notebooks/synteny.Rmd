@@ -1,0 +1,96 @@
+---
+title: "Synteny Phylogeny"
+author: "Vivek Ramanan"
+date: '2023-02-16'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(ggtree)
+library(ggtreeExtra)
+library(ggplot2)
+library(treeio)
+library(ggnewscale)
+library(ape)
+library(dendextend)
+library(dplyr)
+```
+
+## 16S READ
+
+```{r}
+tree <- treeio::read.newick("../bacteria_genome/Trees/16sdendro_2.nwk")
+p <- read.csv("/users/vivekramanan/Desktop/Research/bacteria_genome/Data/species-phylumv3.csv")
+p_df <- p[match(tree$tip.label, p$species),]
+```
+
+## 16S TREE
+```{r}
+#ggtree(tree)%<+% p_df + geom_tippoint((aes(color=phylum2)))
+#ggsave("../bacteria_genome/Figures/dendo_16s.png", dpi=700)
+ggtree(tree, layout="daylight")%<+% p_df + geom_tippoint((aes(color=phylum2)))
+ggsave("../bacteria_genome/Figures/dendo_16s_unr.png", dpi=700)
+```
+## WGS READ
+
+```{r}
+tree2 <- treeio::read.newick("../bacteria_genome/Trees/wgdendro_2.nwk")
+#p <- read.csv("/users/vivekramanan/Desktop/Research/bacteria_genome/Data/species-phylumv2.csv")
+p_df2 <- p[match(tree2$tip.label, p$species),]
+```
+
+## WGS TREE
+```{r}
+ggtree(tree2)%<+% p_df2 + geom_tippoint((aes(color=phylum)))
+ggsave("../bacteria_genome/Figures/dendo_wgs.png", dpi=700)
+#ggtree(tree2, layout="daylight")%<+% p_df2 + geom_tippoint((aes(color=phylum)))
+#ggsave("../bacteria_genome/Figures/dendo_wgs_unr.png", dpi=700)
+```
+
+## 16s + CORE DOT 
+```{r}
+tree3 <- treeio::read.newick("../bacteria_genome/Trees/DOT_16syn.nwk")
+p_df3 <- p[match(tree3$tip.label, p$species),]
+#ggtree(tree3)%<+% p_df3 + geom_tippoint((aes(color=phylum)))
+#ggsave("../bacteria_genome/Figures/dendo_16s_CORE.png", dpi=700)
+ggtree(tree3, layout="daylight")%<+% p_df3 + geom_tippoint((aes(color=phylum2)))
+ggsave("../bacteria_genome/Figures/dendo_16s_CORE_unr.png", dpi=700)
+```
+## 16s + CORE DOT 
+```{r}
+tree3 <- treeio::read.newick("../bacteria_genome/Trees/DOT_wgsyn.nwk")
+p_df3 <- p[match(tree3$tip.label, p$species),]
+#ggtree(tree3)%<+% p_df3 + geom_tippoint((aes(color=phylum)))
+#ggsave("../bacteria_genome/Figures/dendo_16s_CORE.png", dpi=700)
+ggtree(tree3, layout="daylight")%<+% p_df3 + geom_tippoint((aes(color=phylum2)))
+ggsave("../bacteria_genome/Figures/dendo_16s_WG_unr.png", dpi=700)
+```
+
+## WG + CORE DOT 
+```{r}
+tree3 <- treeio::read.newick("../bacteria_genome/Trees/DOT_wgsyn.nwk")
+p_df3 <- p[match(tree3$tip.label, p$species),]
+#ggtree(tree3)%<+% p_df3 + geom_tippoint((aes(color=phylum)))
+#ggsave("../bacteria_genome/Figures/dendo_16s_CORE.png", dpi=700)
+ggtree(tree3, layout="daylight")%<+% p_df3 + geom_tippoint((aes(color=phylum)))
+ggsave("../bacteria_genome/Figures/dendo_wg_CORE_unr2.png", dpi=700)
+```
+
+## 16s GIRVAN NEWMAN
+```{r}
+tree4 <- treeio::read.newick("../bacteria_genome/Trees/16s_girvannewman.nwk")
+p_df4 <- p[match(tree4$tip.label, p$species),]
+#ggtree(tree4)%<+% p_df4 + geom_tippoint((aes(color=phylum)))
+#ggsave("../bacteria_genome/Figures/dendo_16s_GN.png", dpi=700)
+ggtree(tree4, layout="daylight")%<+% p_df4 + geom_tippoint((aes(color=phylum2)))
+ggsave("../bacteria_genome/Figures/dendo_16s_GN_unr.png", dpi=700)
+```
+## 16s + SYN KNN GIRVAN NEWMAN
+```{r}
+tree4 <- treeio::read.newick("../bacteria_genome/Trees/16SYN_girvannewman_dist.nwk")
+p_df4 <- p[match(tree4$tip.label, p$species),]
+#ggtree(tree4)%<+% p_df4 + geom_tippoint((aes(color=phylum)))
+#ggsave("../bacteria_genome/Figures/dendo_16s_GN.png", dpi=700)
+ggtree(tree4, layout="daylight")%<+% p_df4 + geom_tippoint((aes(color=phylum2)))
+ggsave("../bacteria_genome/Figures/dendo_16_SYN_GN_unr2.png", dpi=700)
+```
