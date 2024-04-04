@@ -1,5 +1,8 @@
 """
-Post-Analysis
+Post-Analysis 1 
+Produces Figures 3A/B, and 4A/B
+
+Updates to the HC / KNN pipeline can be found in post-analysis 2
 """
 import pandas as pd
 import numpy as np
@@ -130,111 +133,8 @@ def hcAnalysis(clust_16, clust_16syn, clust_wg, z_scaled, wg_scaled, z, spec, ta
     print(contingency_matrix(c1, c_wg))
     print()
 
-    # ADJUST FIT ACCORDINGLY BASED ON CONTINGENCY MATRIX 
-    fit = {0:3,1:1,2:2,3:2,4:4}
-    c3 = [fit[i] for i in c2]
-    fit2 = {0:3,1:1,2:1,3:2,4:4}
-    c4 = [fit2[i] for i in c_wg]
-
-    phyla = {}
-    for i in range(len(spec)):
-        p = taxD[spec[i]]
-        if p in phyla:
-            phyla[p]+= 1
-        else:
-            phyla[p]=1
-    
-    phylakey = {0: "bacillota/actino", 
-            1: "bacteroidota", 
-            2: "pseudomonadota", 
-            3: "spirochaetes", 
-            4: "verrucomicrobia"}
-    phylaColors = {0:'#440154',
-                1:'#3b528b',
-                2:'#21918c',
-                3:'#5ec962',
-                4:'#fde725'}
-    
-    PCAandTSNE(z, z_scaled, wg_scaled, c1, c3, c4, phylaColors, phylakey)
-
     return
     
-def PCAandTSNE(z, z_syn, z_wg, c1, c3, c4, phylaColors, phylakey):
-    """
-    Runs PCA and tSNE accordingly 
-    @param z/z_syn/z_wg: 2d np array for each set
-    @param c1, c3, c4: clusters (c3 and c4 are manually matched to c1)
-    @param phylaColors / phylakey: dictionary for the phyla data
-    """
-    # PCA and label clusters 
-    f,axes = plt.subplots(1,2, figsize=(20,10))
-    plt.rcParams.update({'font.size': 20})
-
-    pca1 = PCA(n_components=2)
-    pca1.fit(z)
-    print(pca1.explained_variance_ratio_)
-
-    pca2 = PCA(n_components=2)
-    pca2.fit(z_syn)
-    print(pca2.explained_variance_ratio_)
-
-    for i in list(set(c1)):
-        indices = [j for j, x in enumerate(c1) if x == i]
-        x = pca1.components_[0][indices]
-        y = pca1.components_[1][indices]
-        axes[0].scatter(x, y, color=phylaColors[i],label=phylakey[i])
-        
-        indices = [j for j, x in enumerate(c3) if x == i]
-        x = pca2.components_[0][indices]
-        y = pca2.components_[1][indices]
-        axes[1].scatter(x, y, color=phylaColors[i],label=phylakey[i])
-
-    for ax in axes:
-        ax.set_xticks([])
-        ax.set_yticks([])
-    #axes[0].set_title("16S Hierarchical Clusters")
-    #axes[1].set_title("16s+Synteny Hierarchical Clusters")
-
-    #axes[0].legend()
-    #axes[1].legend()
-    plt.savefig("../Figures/PCA.png", dpi=700, bbox_inches="tight")
-    
-    # TSNE
-    f,axes = plt.subplots(1,3, figsize=(30,10))
-    plt.rcParams.update({'font.size': 20})
-
-    tsne1 = TSNE(n_components=2, random_state=0)
-    proj1 = tsne1.fit_transform(z)
-
-    tsne2 = TSNE(n_components=2, random_state=0)
-    proj2 = tsne2.fit_transform(z_syn)
-
-    tsne3 = TSNE(n_components=2, random_state=0)
-    proj3 = tsne2.fit_transform(z_wg)
-
-    for i in list(set(c1)):
-        indices = [j for j, x in enumerate(c1) if x == i]
-        x = proj1[:,0][indices]
-        y = proj1[:,1][indices]
-        axes[0].scatter(x, y, color=phylaColors[i],label=phylakey[i])
-        
-        indices = [j for j, x in enumerate(c3) if x == i]
-        x = proj2[:,0][indices]
-        y = proj2[:,1][indices]
-        axes[1].scatter(x, y, color=phylaColors[i],label=phylakey[i])
-        
-        indices = [j for j, x in enumerate(c4) if x == i]
-        x = proj3[:,0][indices]
-        y = proj3[:,1][indices]
-        axes[2].scatter(x, y, color=phylaColors[i],label=phylakey[i])
-
-    for ax in axes:
-        ax.set_xticks([])
-        ax.set_yticks([])
-        
-    plt.savefig("../Figures/TSNE.png", dpi=700, bbox_inches="tight")
-    plt.show()
-
 def KNNgraphs(z, z_scaled, wg_scaled, taxC, taxD, spec):
     """
     KNN graphs for the cohorts
