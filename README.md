@@ -33,7 +33,10 @@
  Compounds post-calculation analysis of hierarchical clustering, KNN graphs, and other statistical techniques.
 
  Files:
- - postAnalysis.py: python script version of the jupyter notebook
+ - postAnalysis_1.py: python script version synteny metric analysis 
+        (includes creation of hierarchical clustering and KNN graphs figures)
+ - postAnalysis_2.py: revised version of hierarchical clustering and KNN that produces plots that
+        compare cluster cutoff and clustering quality, across other variables
  - taxonomy.py: calculates taxonomic data for pairs (requires taxDict.txt)
  - functions.py: runs the functions for postAnalysis.py
  - networks.py: network functions for postAnalysis.py
